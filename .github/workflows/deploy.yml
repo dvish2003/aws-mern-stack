@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy MERN App to EC2
 
 on:
   push:
@@ -10,15 +10,16 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Stop old containers
+      - name: Create .env file
+        run: |
+          echo "PORT=${{ secrets.PORT }}" > .env
+          echo "MONGO_DB_URL=${{ secrets.MONGO_DB_URL }}" >> .env
+
+      - name: Build & Run Docker Containers
         run: |
           docker-compose down || true
-
-      - name: Build & Start containers
-        run: |
           docker-compose build
           docker-compose up -d
-     
