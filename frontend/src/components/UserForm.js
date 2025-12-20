@@ -1,4 +1,5 @@
 "use client";
+import { apiClient } from "@/service/apiClient";
 import React, { useState } from "react";
 
 const UserForm = ({ onUserSaved }) => {
@@ -17,13 +18,7 @@ const UserForm = ({ onUserSaved }) => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/user/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userForm),
-      });
+      const response = await apiClient("user/register", "POST", userForm);
 
       const data = await response.json();
       console.log("Response Data:", data);
