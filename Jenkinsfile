@@ -26,7 +26,6 @@ pipeline {
             steps {
                 dir('./backend') {
                     sh 'npm install'
-                    sh 'npm run build'
                 }
             }
         }
@@ -55,29 +54,22 @@ pipeline {
         stage('Push Docker Images') {
             steps {
                   script {
-                        dir('./frontend') {
-                            sh "docker push ${DOCKER_REPO_FE}:latest"
-                        }
-                        dir('./backend') {
-                            sh "docker push ${DOCKER_REPO_BE}:latest"
-                        }
+                        sh "docker push ${DOCKER_REPO_FE}:latest"
+                        sh "docker push ${DOCKER_REPO_BE}:latest"
                 }
             }
         }
         stage('Deployment') {
             steps {
                 echo 'Deploying application...'
-                // Add your deployment steps here
             }
         }
 
-        post {
-            always {
-                cleanWs()
-                script{
-                    sh 'docker logout'
-                }
-            }
+    }
+    post {
+        always {
+            cleanWs()
+            sh 'docker logout'
         }
     }
 }
