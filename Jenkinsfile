@@ -44,9 +44,9 @@ pipeline {
         }
         stage("Login to DockerHub") {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+             withCredentials([string(credentialsId: 'docker-hub-password', variable: 'vish_docker_hub_password')]) {
                    script {
-                        sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
+                         sh "docker login -u dvish2003 -p ${vish_docker_hub_password}"
                    }
                 }
             }
@@ -54,7 +54,6 @@ pipeline {
         }
         stage('Push Docker Images') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
                   script {
                         dir('./frontend') {
                             sh "docker push ${DOCKER_REPO_FE}:latest"
@@ -62,7 +61,6 @@ pipeline {
                         dir('./backend') {
                             sh "docker push ${DOCKER_REPO_BE}:latest"
                         }
-                  }
                 }
             }
         }
