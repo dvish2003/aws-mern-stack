@@ -1,17 +1,15 @@
+# Use Node.js official image
 FROM node:20-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
-
-# Install dependencies (CI preferred for lockfile consistency)
-RUN npm ci || npm install
+RUN npm install
 
 COPY . .
 
 RUN npm run build
 
 EXPOSE 3000
-ENV PORT=3000
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "start"]
