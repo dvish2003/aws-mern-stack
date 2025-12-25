@@ -21,9 +21,9 @@ pipeline {
         }
         stage("Login to DockerHub") {
             steps {
-             withCredentials([string(credentialsId: 'docker-hub-password', variable: 'vish_docker_hub_password')]) {
+              withCredentials([string(credentialsId: 'DOCKER_HUB_PASSWORD', variable: 'DOCKER_HUB_PASSWORD')]) {
                    script {
-                         sh "docker login -u dvish2003 -p ${vish_docker_hub_password}"
+                         sh "docker login -u dvish2003 -p ${DOCKER_HUB_PASSWORD}"
                    }
                 }
             }
@@ -37,13 +37,17 @@ pipeline {
                 }
             }
         }
-        stage('Deployment') {
-            steps {
-                echo 'Deploying application...'
+       
+        stage('Deploy with Docker Compose') {
+                steps {
+                    sh '''
+                        docker-compose pull
+                        docker-compose down
+                        docker-compose up -d
+                    '''
+                }
             }
         }
-
-    }
     post {
         always {
             cleanWs()
