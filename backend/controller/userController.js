@@ -2,8 +2,6 @@ import User from "../model/User.js";
 export const saveUser = async (req, res) => {
   try {
     const user = new User(req.body);
-    console.log("user: ", user);
-
     const existingUser = await User.findOne({ email: req.body.email });
     if (existingUser)
       return res.status(400).json({ message: "User already exists" });

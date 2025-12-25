@@ -1,5 +1,5 @@
 export const apiClient = async (endpoint, method, body = null) => {
-    const response = await fetch(`http://localhost:8000/api/${endpoint}`, {
+    const response = await fetch(`http://localhost:5000/api${endpoint}`, {
         method: method,
         headers: {
             "Content-Type": "application/json",

@@ -18,7 +18,7 @@ const UserForm = ({ onUserSaved }) => {
     setError("");
 
     try {
-      const response = await apiClient("user/register", "POST", userForm);
+      const response = await apiClient("/user/register", "POST", userForm);
 
       const data = await response.json();
       console.log("Response Data:", data);
