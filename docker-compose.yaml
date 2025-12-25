@@ -10,7 +10,7 @@ services:
     environment:
       PORT: 5000
       MONGO_DB_URL: "mongodb+srv://dvish2003:Vishan2003%23%23%23@cluster0.ijybos0.mongodb.net/aws-mern?appName=Cluster0"
-    restart: unless-stopped
+    restart: always
 
   frontend:
     build:
@@ -20,4 +20,4 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    restart: unless-stopped
+    restart: always
