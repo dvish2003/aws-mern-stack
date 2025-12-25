@@ -7,6 +7,11 @@ pipeline {
     }
 
     stages {
+        stage ('Checkout Code') {
+            steps {
+                git url: 'https://github.com/dvish2003/aws-mern-stack.git', branch: 'main'
+            }
+        }
         stage('Build Docker Images') {
             steps {
                script{
@@ -21,9 +26,9 @@ pipeline {
         }
         stage("Login to DockerHub") {
             steps {
-              withCredentials([string(credentialsId: 'DOCKER_HUB_PASSWORD', variable: 'DOCKER_HUB_PASSWORD')]) {
+             withCredentials([string(credentialsId: 'docker-hub-password', variable: 'vish_docker_hub_password')]) {
                    script {
-                         sh "docker login -u dvish2003 -p ${DOCKER_HUB_PASSWORD}"
+                         sh "docker login -u dvish2003 -p ${vish_docker_hub_password}"
                    }
                 }
             }
