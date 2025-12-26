@@ -1,74 +1,81 @@
 pipeline {
-    agent any 
-    
+    agent any
+
     environment {
         DOCKER_REPO_FE = 'dvish2003/mern-frontend'
         DOCKER_REPO_BE = 'dvish2003/mern-backend'
-        EC2_USER = 'ubuntu'
-        EC2_IP = '13.60.69.215' 
+        DOCKER_USER   = 'dvish2003'
+        EC2_USER      = 'ubuntu'
+        EC2_IP        = '51.20.252.89'
+        EC2_APP_DIR   = '/home/ubuntu/aws-mern-stack'
     }
 
     stages {
-        stage ('Checkout Code') {
+
+        stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/dvish2003/aws-mern-stack.git', branch: 'main'
+                git branch: 'main',
+                    url: 'https://github.com/dvish2003/aws-mern-stack.git'
             }
         }
+
         stage('Build Docker Images') {
             steps {
-               script{
-                dir('./frontend') {
-                    sh "docker build -t ${DOCKER_REPO_FE}:latest ."
+                script {
+                    dir('frontend') {
+                        sh "docker build -t ${DOCKER_REPO_FE}:latest ."
+                    }
+                    dir('backend') {
+                        sh "docker build -t ${DOCKER_REPO_BE}:latest ."
+                    }
                 }
-                dir('./backend') {
-                    sh "docker build -t ${DOCKER_REPO_BE}:latest ."
-                }
-               }
             }
         }
-        stage("Login to DockerHub") {
+
+        stage('Login to DockerHub') {
             steps {
-               withCredentials([string(credentialsId: 'DOCKER_PASSWORD', variable: 'DOCKER_PASSWORD')]) {
-                    sh '''
-                    echo "$DOCKER_PASSWORD" | docker login -u dvish2003 --password-stdin
-                    '''
+                withCredentials([
+                    string(credentialsId: 'DOCKER_PASSWORD', variable: 'DOCKER_PASSWORD')
+                ]) {
+                    sh """
+                    echo "\$DOCKER_PASSWORD" | docker login -u ${DOCKER_USER} --password-stdin
+                    """
                 }
             }
         }
 
         stage('Push Docker Images') {
             steps {
-                  script {
-                        sh "docker push ${DOCKER_REPO_FE}:latest"
-                        sh "docker push ${DOCKER_REPO_BE}:latest"
-                }
+                sh "docker push ${DOCKER_REPO_FE}:latest"
+                sh "docker push ${DOCKER_REPO_BE}:latest"
             }
         }
-       stage('Deploy to EC2') {
+
+        stage('Deploy to EC2') {
             steps {
                 sshagent(credentials: ['ec2-ssh-key']) {
-                    sh '''
-                    ssh -tt -o StrictHostKeyChecking=no ubuntu@13.60.69.215 "bash -c '
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} << 'EOF'
                         set -e
-                        set -x
-                        echo Connected to EC2
+                        echo "Connected to EC2"
 
-                        cd /home/ubuntu
+                        mkdir -p ${EC2_APP_DIR}
+                        cd ${EC2_APP_DIR}
 
-                        docker pull dvish2003/mern-frontend:latest
-                        docker pull dvish2003/mern-backend:latest
+                        docker pull ${DOCKER_REPO_FE}:latest
+                        docker pull ${DOCKER_REPO_BE}:latest
 
-                        docker compose down || docker-compose down
-                        docker compose up -d || docker-compose up -d
+                        docker compose down
+                        docker compose up -d
 
-                        echo Deploy finished successfully
-                    '"
-                    '''
+                        echo "Deploy finished successfully"
+                    EOF
+                    """
                 }
             }
         }
-
     }
+
     post {
         always {
             cleanWs()

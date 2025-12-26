@@ -12,6 +12,19 @@ pipeline {
                 git url: 'https://github.com/dvish2003/aws-mern-stack.git', branch: 'main'
             }
         }
+        // testing build stage
+        stage('Build Frontend and Backend'){
+            steps {
+                sh '''
+                    cd frontend
+                    npm install
+                    npm run build
+                    cd ../backend
+                    npm install
+                    npm run build
+                '''
+            }
+        }
         stage('Build Docker Images') {
             steps {
                script{

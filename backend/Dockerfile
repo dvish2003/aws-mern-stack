@@ -9,7 +9,6 @@ RUN npm ci || npm install
 
 COPY . .
 
-EXPOSE 8000
-ENV PORT=8000
+EXPOSE 5000
 
 CMD ["npm", "start"]
