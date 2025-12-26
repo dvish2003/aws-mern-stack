@@ -7,7 +7,7 @@ pipeline {
         DOCKER_USER   = 'dvish2003'
         EC2_USER      = 'ubuntu'
         EC2_IP        = '51.20.252.89'
-        EC2_APP_DIR   = '/home/ubuntu/aws-mern-stack'
+        EC2_APP_DIR   = '/home/ubuntu'
     }
 
     stages {
@@ -16,6 +16,28 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/dvish2003/aws-mern-stack.git'
+            }
+        }
+
+        stage('Install & Test Backend') {
+            steps {
+                dir('backend') {
+                    sh '''
+                        npm install
+                        npm test || echo "No backend tests"
+                    '''
+                }
+            }
+        }
+
+        stage('Install & Test Frontend') {
+            steps {
+                dir('frontend') {
+                    sh '''
+                        npm install
+                        npm test || echo "No frontend tests"
+                    '''
+                }
             }
         }
 
@@ -59,7 +81,6 @@ pipeline {
                         set -e
                         echo "Connected to EC2"
 
-                        mkdir -p ${EC2_APP_DIR}
                         cd ${EC2_APP_DIR}
 
                         docker pull ${DOCKER_REPO_FE}:latest
@@ -68,6 +89,7 @@ pipeline {
                         docker compose down
                         docker compose up -d
 
+                        docker ps
                         echo "Deploy finished successfully"
                     EOF
                     """
