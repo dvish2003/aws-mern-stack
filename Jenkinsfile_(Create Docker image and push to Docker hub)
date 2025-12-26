@@ -4,6 +4,8 @@ pipeline {
     environment {
         DOCKER_REPO_FE = 'dvish2003/mern-frontend'
         DOCKER_REPO_BE = 'dvish2003/mern-backend'
+        EC2_USER = 'ubuntu'
+        EC2_IP = '13.60.69.215' 
     }
 
     stages {
@@ -26,14 +28,14 @@ pipeline {
         }
         stage("Login to DockerHub") {
             steps {
-             withCredentials([string(credentialsId: 'docker-hub-password', variable: 'vish_docker_hub_password')]) {
-                   script {
-                         sh "docker login -u dvish2003 -p ${vish_docker_hub_password}"
-                   }
+               withCredentials([string(credentialsId: 'DOCKER_PASSWORD', variable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                    echo "$DOCKER_PASSWORD" | docker login -u dvish2003 --password-stdin
+                    '''
                 }
             }
-
         }
+
         stage('Push Docker Images') {
             steps {
                   script {
@@ -42,9 +44,27 @@ pipeline {
                 }
             }
         }
-        stage('Deployment') {
+       stage('Deploy to EC2') {
             steps {
-                echo 'Deploying application...'
+                sshagent(credentials: ['ec2-ssh-key']) {
+                    sh '''
+                    ssh -tt -o StrictHostKeyChecking=no ubuntu@13.60.69.215 "bash -c '
+                        set -e
+                        set -x
+                        echo Connected to EC2
+
+                        cd /home/ubuntu
+
+                        docker pull dvish2003/mern-frontend:latest
+                        docker pull dvish2003/mern-backend:latest
+
+                        docker compose down || docker-compose down
+                        docker compose up -d || docker-compose up -d
+
+                        echo Deploy finished successfully
+                    '"
+                    '''
+                }
             }
         }
 
