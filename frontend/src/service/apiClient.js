@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://13.51.48.151:5000";
 
 export const apiClient = async (endpoint, method = "GET", body = null) => {
   const res = await fetch(`${API_URL}/api${endpoint}`, {
