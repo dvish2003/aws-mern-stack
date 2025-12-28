@@ -81,8 +81,15 @@ pipeline {
                                         set -e
                                         cd ${EC2_APP_DIR}
 
+                                        if [ -f docker-compose.yaml ]; then
+                                            echo 'Overwriting existing docker-compose.yaml...'
+                                        else
+                                            echo 'Creating new docker-compose.yaml...'
+                                        fi
+
                                         docker compose pull || true
                                         docker-compose down || true
+                                        docker-compose up -d
                                         docker-compose up
                                         docker ps
                                     """
