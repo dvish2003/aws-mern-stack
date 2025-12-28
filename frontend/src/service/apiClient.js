@@ -1,5 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://13.51.48.151:5000";
-
 export const apiClient = async (endpoint, method = "GET", body = null) => {
   const res = await fetch(`/api${endpoint}`, {
     method,
@@ -10,5 +8,9 @@ export const apiClient = async (endpoint, method = "GET", body = null) => {
     cache: "no-store",
   });
 
-  return res;
+  if (!res.ok) {
+    throw new Error("API request failed");
+  }
+
+  return res.json();
 };
