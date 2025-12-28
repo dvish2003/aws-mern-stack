@@ -8,7 +8,7 @@ pipeline {
         EC2_USER      = 'ubuntu'
         EC2_IP        = '13.51.48.151'
         EC2_APP_DIR   = '/home/ubuntu/app'
-        EC2_SSH       = 'ec2-ssh-key' // Jenkins SSH configuration name
+        EC2_SSH       = 'EC2_1' // Jenkins SSH configuration name
     }
 
     stages {
@@ -71,7 +71,7 @@ pipeline {
             }
         }
 
-        stage('Deploy on EC2') {
+       stage('Deploy on EC2') {
             steps {
                 echo 'Deploying to EC2 using SSH Publisher...'
                 sshPublisher(
@@ -86,9 +86,11 @@ pipeline {
                                     execCommand: """
                                         set -e
                                         echo 'Connected to EC2'
-                                        echo 'Pulling latest Docker images...'
-                                        docker pull ${DOCKER_REPO_FE}:latest
-                                        docker pull ${DOCKER_REPO_BE}:latest
+
+                                        cd ${EC2_APP_DIR}
+
+                                        echo 'Pulling latest Docker images via Compose...'
+                                        docker compose pull   # <- This ensures images are pulled
 
                                         echo 'Stopping old containers...'
                                         docker compose down || true
@@ -109,6 +111,7 @@ pipeline {
                 )
             }
         }
+
     }
 
     post {
