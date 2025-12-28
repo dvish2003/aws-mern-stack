@@ -6,12 +6,12 @@ pipeline {
         DOCKER_REPO_BE = 'dvish2003/mern-backend'
         DOCKER_USER   = 'dvish2003'
         EC2_USER      = 'ubuntu'
-        EC2_IP        = '51.20.252.89'
-        EC2_APP_DIR   = '/home/ubuntu'
+        EC2_IP        = '13.51.48.151'
+        EC2_APP_DIR   = '/home/ubuntu/app'
+        EC2_SSH       = 'ec2-ssh-key' // Jenkins SSH configuration name
     }
 
     stages {
-
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
@@ -56,11 +56,9 @@ pipeline {
 
         stage('Login to DockerHub') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'DOCKER_PASSWORD', variable: 'DOCKER_PASSWORD')
-                ]) {
+                withCredentials([string(credentialsId: 'DOCKER_HUB_PASSWORD', variable: 'DOCKER_HUB_PASSWORD')]) {
                     sh """
-                    echo "\$DOCKER_PASSWORD" | docker login -u ${DOCKER_USER} --password-stdin
+                        echo "\$DOCKER_HUB_PASSWORD" | docker login -u ${DOCKER_USER} --password-stdin
                     """
                 }
             }
@@ -73,27 +71,42 @@ pipeline {
             }
         }
 
-        stage('Deploy to EC2') {
+        stage('Deploy on EC2') {
             steps {
-                sshagent(credentials: ['ec2-ssh-key']) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} << 'EOF'
-                        set -e
-                        echo "Connected to EC2"
+                echo 'Deploying to EC2 using SSH Publisher...'
+                sshPublisher(
+                    publishers: [
+                        sshPublisherDesc(
+                            configName: "${EC2_SSH}",
+                            transfers: [
+                                sshTransfer(
+                                    sourceFiles: '',
+                                    removePrefix: '',
+                                    remoteDirectory: "${EC2_APP_DIR}",
+                                    execCommand: """
+                                        set -e
+                                        echo 'Connected to EC2'
+                                        echo 'Pulling latest Docker images...'
+                                        docker pull ${DOCKER_REPO_FE}:latest
+                                        docker pull ${DOCKER_REPO_BE}:latest
 
-                        cd ${EC2_APP_DIR}
+                                        echo 'Stopping old containers...'
+                                        docker compose down || true
 
-                        docker pull ${DOCKER_REPO_FE}:latest
-                        docker pull ${DOCKER_REPO_BE}:latest
+                                        echo 'Starting new containers...'
+                                        docker compose up -d
 
-                        docker compose down
-                        docker compose up -d
-
-                        docker ps
-                        echo "Deploy finished successfully"
-                    EOF
-                    """
-                }
+                                        echo 'Running containers:'
+                                        docker ps
+                                        echo 'Deployment finished successfully!'
+                                    """
+                                )
+                            ],
+                            useWorkspaceInPromotion: false,
+                            verbose: true
+                        )
+                    ]
+                )
             }
         }
     }
@@ -101,7 +114,7 @@ pipeline {
     post {
         always {
             cleanWs()
-            sh 'docker logout'
+            sh 'docker logout || true'
         }
     }
 }
