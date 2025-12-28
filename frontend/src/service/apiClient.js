@@ -1,5 +1,7 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export const apiClient = async (endpoint, method = "GET", body = null) => {
-  const res = await fetch(`/api${endpoint}`, {
+  const res = await fetch(`${API_URL}/api${endpoint}`, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -8,9 +10,5 @@ export const apiClient = async (endpoint, method = "GET", body = null) => {
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    throw new Error("API request failed");
-  }
-
-  return res.json();
+  return res;
 };
