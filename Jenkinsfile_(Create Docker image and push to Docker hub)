@@ -42,15 +42,9 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-               dir('frontend') {
-                    sh """
-                    docker build \
-                    --no-cache \
-                    --build-arg NEXT_PUBLIC_API_URL=http://13.51.48.151:5000 \
-                    -t ${DOCKER_REPO_FE}:latest .
-                    """
+                dir('frontend') {
+                    sh "docker build -t ${DOCKER_REPO_FE}:latest ."
                 }
-
                 dir('backend') {
                     sh "docker build -t ${DOCKER_REPO_BE}:latest ."
                 }
